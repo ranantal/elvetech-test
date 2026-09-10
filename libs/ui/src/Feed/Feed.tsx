@@ -1,9 +1,8 @@
 /** @jsxImportSource @emotion/react */
 import { css } from '@emotion/react';
-import { useRef } from 'react';
-import { useVirtualizer } from '@tanstack/react-virtual';
 import { Box } from '@mui/material';
 import { Item, type ItemPosts } from '../Item/Item';
+import { useVirtualizedRows } from './useVirtualizedRows';
 
 export interface FeedProps {
   items: ItemPosts[];
@@ -36,24 +35,20 @@ const ESTIMATED_ROW_HEIGHT = 400;
 const LOADING_ITEM: ItemPosts = [undefined, undefined];
 
 export function Feed({ items, loading }: FeedProps) {
-  const scrollRef = useRef<HTMLDivElement>(null);
   const showLoadingRow = loading && items.length === 0;
   const rows = showLoadingRow ? [LOADING_ITEM] : items;
 
-  const virtualizer = useVirtualizer({
-    count: rows.length,
-    getScrollElement: () => scrollRef.current,
-    estimateSize: () => ESTIMATED_ROW_HEIGHT,
-  });
+  const { scrollRef, totalSize, virtualRows, measureElement } =
+    useVirtualizedRows(rows.length, ESTIMATED_ROW_HEIGHT);
 
   return (
     <Box ref={scrollRef} css={scrollContainerStyles}>
-      <Box css={listStyles} style={{ height: virtualizer.getTotalSize() }}>
-        {virtualizer.getVirtualItems().map((virtualRow) => (
+      <Box css={listStyles} style={{ height: totalSize }}>
+        {virtualRows.map((virtualRow) => (
           <Box
             key={virtualRow.key}
             data-index={virtualRow.index}
-            ref={virtualizer.measureElement}
+            ref={measureElement}
             css={rowStyles}
             style={{ transform: `translateY(${virtualRow.start}px)` }}
           >
