@@ -1,4 +1,4 @@
-import { IndexedDbStore } from './IndexedDbStore';
+import { IndexedDbStore } from '../storage/IndexedDbStore';
 
 const TTL_MS = 60 * 60 * 1000;
 
@@ -12,6 +12,9 @@ const store = new IndexedDbStore<CacheEntry<unknown>>(
   'results',
 );
 
+// Expiry is checked lazily on read rather than swept in the background —
+// a stale entry is simply ignored and gets overwritten on the next `set`
+// for that query.
 export class SearchCache {
   async get<T>(query: string): Promise<T[] | undefined> {
     const entry = (await store.get(query)) as CacheEntry<T> | undefined;

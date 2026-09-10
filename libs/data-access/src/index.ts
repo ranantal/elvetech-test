@@ -1,4 +1,5 @@
-export { SearchService } from './SearchService';
-export { SearchCache } from './SearchCache';
-export { CachedSearchService } from './CachedSearchService';
-export { SearchHistory } from './SearchHistory';
+export { SearchService } from './services/SearchService';
+export { SearchCache } from './services/SearchCache';
+export { CachedSearchService } from './services/CachedSearchService';
+export { SearchHistory } from './services/SearchHistory';
+export type { Searcher } from './interfaces/Searcher';

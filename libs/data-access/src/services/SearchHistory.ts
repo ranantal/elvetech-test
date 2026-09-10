@@ -1,4 +1,4 @@
-import { IndexedDbStore } from './IndexedDbStore';
+import { IndexedDbStore } from '../storage/IndexedDbStore';
 
 const RECENT_LIMIT = 5;
 

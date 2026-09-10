@@ -4,6 +4,9 @@ interface IndexedDbStoreOptions {
   keyPath?: string;
 }
 
+// Thin wrapper around a single IndexedDB object store: opens (and memoizes)
+// the connection lazily on first use, so constructing a store is free until
+// it's actually read from or written to.
 export class IndexedDbStore<T> {
   private dbPromise: Promise<IDBPDatabase> | undefined;
 
