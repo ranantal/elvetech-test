@@ -1,9 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
-import { CachedSearchService, SearchHistory } from '@elvetech/data-access';
+import {
+  CachedSearchService,
+  SearchHistory,
+  type Searcher,
+} from '@elvetech/data-access';
 import type { ItemPosts, PostData } from '@elvetech/ui';
 
-const searchService = new CachedSearchService();
-const searchHistory = new SearchHistory();
+const defaultSearchService = new CachedSearchService();
+const defaultSearchHistory = new SearchHistory();
 const LAST_QUERY_STORAGE_KEY = 'elvetech:last-search-query';
 
 export interface UseSearchResult {
@@ -16,7 +20,13 @@ export interface UseSearchResult {
   clearHistory: () => void;
 }
 
-export function useSearch(): UseSearchResult {
+// searchService/searchHistory are injectable — mirrors CachedSearchService's
+// own constructor defaults — so this hook can be tested with fakes instead
+// of mocking the module.
+export function useSearch(
+  searchService: Searcher = defaultSearchService,
+  searchHistory: SearchHistory = defaultSearchHistory,
+): UseSearchResult {
   const [items, setItems] = useState<ItemPosts[]>([]);
   const [history, setHistory] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -26,7 +36,7 @@ export function useSearch(): UseSearchResult {
 
   const refreshHistory = useCallback(() => {
     searchHistory.getRecent().then(setHistory);
-  }, []);
+  }, [searchHistory]);
 
   const search = useCallback(
     (query: string) => {
@@ -43,19 +53,19 @@ export function useSearch(): UseSearchResult {
 
       Promise.allSettled(requests).then(() => setLoading(false));
     },
-    [refreshHistory],
+    [searchService, searchHistory, refreshHistory],
   );
 
   const removeFromHistory = useCallback(
     (query: string) => {
       searchHistory.remove(query).then(refreshHistory);
     },
-    [refreshHistory],
+    [searchHistory, refreshHistory],
   );
 
   const clearHistory = useCallback(() => {
     searchHistory.clear().then(refreshHistory);
-  }, [refreshHistory]);
+  }, [searchHistory, refreshHistory]);
 
   // Restore the last search and the persisted history on startup.
   useEffect(() => {
