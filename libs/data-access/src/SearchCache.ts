@@ -1,7 +1,5 @@
-import { openDB, type IDBPDatabase } from 'idb';
+import { IndexedDbStore } from './IndexedDbStore';
 
-const DB_NAME = 'elvetech-search-cache';
-const STORE_NAME = 'results';
 const TTL_MS = 60 * 60 * 1000;
 
 interface CacheEntry<T> {
@@ -9,21 +7,14 @@ interface CacheEntry<T> {
   storedAt: number;
 }
 
-let dbPromise: Promise<IDBPDatabase> | undefined;
-
-function getDb() {
-  dbPromise ??= openDB(DB_NAME, 1, {
-    upgrade(db) {
-      db.createObjectStore(STORE_NAME);
-    },
-  });
-  return dbPromise;
-}
+const store = new IndexedDbStore<CacheEntry<unknown>>(
+  'elvetech-search-cache',
+  'results',
+);
 
 export class SearchCache {
   async get<T>(query: string): Promise<T[] | undefined> {
-    const db = await getDb();
-    const entry: CacheEntry<T> | undefined = await db.get(STORE_NAME, query);
+    const entry = (await store.get(query)) as CacheEntry<T> | undefined;
 
     if (!entry || Date.now() - entry.storedAt > TTL_MS) {
       return undefined;
@@ -33,8 +24,7 @@ export class SearchCache {
   }
 
   async set<T>(query: string, result: T[]): Promise<void> {
-    const db = await getDb();
     const entry: CacheEntry<T> = { result, storedAt: Date.now() };
-    await db.put(STORE_NAME, entry, query);
+    await store.put(entry, query);
   }
 }
