@@ -1,6 +1,12 @@
 /** @jsxImportSource @emotion/react */
 import { css } from '@emotion/react';
-import { useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type KeyboardEvent,
+} from 'react';
 import Input from '@mui/material/Input';
 import {
   Box,
@@ -51,6 +57,18 @@ export function SearchBar({
   const [value, setValue] = useState(initialValue);
   const [historyOpen, setHistoryOpen] = useState(false);
   const anchorRef = useRef<HTMLDivElement>(null);
+  const hasSeededInitialValue = useRef(false);
+
+  // initialValue can arrive asynchronously (restored from persisted
+  // history) after this component has already mounted with an empty seed —
+  // sync it in once, without clobbering anything typed since.
+  useEffect(() => {
+    if (hasSeededInitialValue.current || !initialValue) {
+      return;
+    }
+    hasSeededInitialValue.current = true;
+    setValue(initialValue);
+  }, [initialValue]);
 
   const runSearch = (query: string) => {
     setValue(query);

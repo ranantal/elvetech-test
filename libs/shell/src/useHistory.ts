@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { SearchHistory } from '@elvetech/data-access';
 
-const defaultSearchHistory = new SearchHistory();
+export const defaultSearchHistory = new SearchHistory();
 
 export interface UseHistoryResult {
   history: string[];

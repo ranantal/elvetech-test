@@ -1,14 +1,13 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   CachedSearchService,
   type Searcher,
   type SearchHistory,
 } from '@elvetech/data-access';
 import type { ItemPosts, PostData } from '@elvetech/ui';
-import { useHistory } from './useHistory';
+import { useHistory, defaultSearchHistory } from './useHistory';
 
 const defaultSearchService = new CachedSearchService();
-const LAST_QUERY_STORAGE_KEY = 'elvetech:last-search-query';
 
 export interface UseSearchResult {
   items: ItemPosts[];
@@ -20,25 +19,22 @@ export interface UseSearchResult {
   clearHistory: () => void;
 }
 
-// searchService is injectable — mirrors CachedSearchService's own
-// constructor defaults — so this hook can be tested with a fake instead of
-// mocking the module. searchHistory is forwarded to useHistory the same way.
+// searchService/searchHistory are injectable — mirrors CachedSearchService's
+// own constructor defaults — so this hook can be tested with fakes instead
+// of mocking the module.
 export function useSearch(
   searchService: Searcher = defaultSearchService,
-  searchHistory?: SearchHistory,
+  searchHistory: SearchHistory = defaultSearchHistory,
 ): UseSearchResult {
   const [items, setItems] = useState<ItemPosts[]>([]);
   const [loading, setLoading] = useState(false);
-  const [initialQuery] = useState(
-    () => localStorage.getItem(LAST_QUERY_STORAGE_KEY) ?? '',
-  );
+  const [initialQuery, setInitialQuery] = useState('');
 
   const { history, addToHistory, removeFromHistory, clearHistory } =
     useHistory(searchHistory);
 
   const search = useCallback(
     (query: string) => {
-      localStorage.setItem(LAST_QUERY_STORAGE_KEY, query);
       addToHistory(query);
       setItems([]);
       setLoading(true);
@@ -54,12 +50,26 @@ export function useSearch(
     [searchService, addToHistory],
   );
 
-  // Restore the last search on startup, if there is one.
+  // Restore the last search on startup, if there is one — the most recent
+  // SearchHistory entry doubles as "last query" so there's no separate
+  // persistence channel just for that. This must only ever run once: history
+  // itself changes on every subsequent search, so a naive effect keyed on it
+  // would re-trigger a restore search after every manual one.
+  const restoredRef = useRef(false);
+
   useEffect(() => {
-    if (initialQuery) {
-      search(initialQuery);
+    if (restoredRef.current) {
+      return;
     }
-  }, [initialQuery, search]);
+    restoredRef.current = true;
+
+    searchHistory.getRecent(1).then(([lastQuery]) => {
+      if (lastQuery) {
+        setInitialQuery(lastQuery);
+        search(lastQuery);
+      }
+    });
+  }, [search, searchHistory]);
 
   return {
     items,
