@@ -57,33 +57,44 @@ export function TagList({ tags }: TagListProps) {
       return;
     }
 
-    const containerWidth = container.clientWidth;
-    const chipWidths = measureRefs.current.map((el) => el?.offsetWidth ?? 0);
-    const moreWidth = moreRef.current?.offsetWidth ?? 0;
+    const measure = () => {
+      const containerWidth = container.clientWidth;
+      const chipWidths = measureRefs.current.map((el) => el?.offsetWidth ?? 0);
+      const moreWidth = moreRef.current?.offsetWidth ?? 0;
 
-    const totalWidth = chipWidths.reduce(
-      (sum, width, index) => sum + width + (index > 0 ? CHIP_GAP : 0),
-      0,
-    );
+      const totalWidth = chipWidths.reduce(
+        (sum, width, index) => sum + width + (index > 0 ? CHIP_GAP : 0),
+        0,
+      );
 
-    if (totalWidth <= containerWidth) {
-      setVisibleCount(tags.length);
-      return;
-    }
-
-    let usedWidth = 0;
-    let count = 0;
-    for (let i = 0; i < chipWidths.length; i++) {
-      const gap = i > 0 ? CHIP_GAP : 0;
-      const widthWithChip = usedWidth + gap + chipWidths[i];
-      if (widthWithChip + CHIP_GAP + moreWidth > containerWidth) {
-        break;
+      if (totalWidth <= containerWidth) {
+        setVisibleCount(tags.length);
+        return;
       }
-      usedWidth = widthWithChip;
-      count = i + 1;
-    }
 
-    setVisibleCount(Math.max(count, 1));
+      let usedWidth = 0;
+      let count = 0;
+      for (let i = 0; i < chipWidths.length; i++) {
+        const gap = i > 0 ? CHIP_GAP : 0;
+        const widthWithChip = usedWidth + gap + chipWidths[i];
+        if (widthWithChip + CHIP_GAP + moreWidth > containerWidth) {
+          break;
+        }
+        usedWidth = widthWithChip;
+        count = i + 1;
+      }
+
+      setVisibleCount(Math.max(count, 1));
+    };
+
+    measure();
+
+    // The container's width changes on window resize (and other layout
+    // shifts) without `tags` changing, so re-measure whenever it does.
+    const resizeObserver = new ResizeObserver(measure);
+    resizeObserver.observe(container);
+
+    return () => resizeObserver.disconnect();
   }, [tags]);
 
   const hasOverflow = visibleCount < tags.length;
