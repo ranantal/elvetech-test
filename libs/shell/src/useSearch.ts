@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   CachedSearchService,
-  SearchHistory,
   type Searcher,
+  type SearchHistory,
 } from '@elvetech/data-access';
 import type { ItemPosts, PostData } from '@elvetech/ui';
+import { useHistory } from './useHistory';
 
 const defaultSearchService = new CachedSearchService();
-const defaultSearchHistory = new SearchHistory();
 const LAST_QUERY_STORAGE_KEY = 'elvetech:last-search-query';
 
 export interface UseSearchResult {
@@ -20,28 +20,26 @@ export interface UseSearchResult {
   clearHistory: () => void;
 }
 
-// searchService/searchHistory are injectable — mirrors CachedSearchService's
-// own constructor defaults — so this hook can be tested with fakes instead
-// of mocking the module.
+// searchService is injectable — mirrors CachedSearchService's own
+// constructor defaults — so this hook can be tested with a fake instead of
+// mocking the module. searchHistory is forwarded to useHistory the same way.
 export function useSearch(
   searchService: Searcher = defaultSearchService,
-  searchHistory: SearchHistory = defaultSearchHistory,
+  searchHistory?: SearchHistory,
 ): UseSearchResult {
   const [items, setItems] = useState<ItemPosts[]>([]);
-  const [history, setHistory] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [initialQuery] = useState(
     () => localStorage.getItem(LAST_QUERY_STORAGE_KEY) ?? '',
   );
 
-  const refreshHistory = useCallback(() => {
-    searchHistory.getRecent().then(setHistory);
-  }, [searchHistory]);
+  const { history, addToHistory, removeFromHistory, clearHistory } =
+    useHistory(searchHistory);
 
   const search = useCallback(
     (query: string) => {
       localStorage.setItem(LAST_QUERY_STORAGE_KEY, query);
-      searchHistory.add(query).then(refreshHistory);
+      addToHistory(query);
       setItems([]);
       setLoading(true);
 
@@ -53,28 +51,15 @@ export function useSearch(
 
       Promise.allSettled(requests).then(() => setLoading(false));
     },
-    [searchService, searchHistory, refreshHistory],
+    [searchService, addToHistory],
   );
 
-  const removeFromHistory = useCallback(
-    (query: string) => {
-      searchHistory.remove(query).then(refreshHistory);
-    },
-    [searchHistory, refreshHistory],
-  );
-
-  const clearHistory = useCallback(() => {
-    searchHistory.clear().then(refreshHistory);
-  }, [searchHistory, refreshHistory]);
-
-  // Restore the last search and the persisted history on startup.
+  // Restore the last search on startup, if there is one.
   useEffect(() => {
-    refreshHistory();
-
     if (initialQuery) {
       search(initialQuery);
     }
-  }, [initialQuery, refreshHistory, search]);
+  }, [initialQuery, search]);
 
   return {
     items,
