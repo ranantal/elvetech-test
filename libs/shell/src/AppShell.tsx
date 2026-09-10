@@ -17,8 +17,15 @@ const contentStyles = css`
 `;
 
 export function AppShell() {
-  const { items, initialQuery, history, search, removeFromHistory, clearHistory } =
-    useSearch();
+  const {
+    items,
+    initialQuery,
+    history,
+    loading,
+    search,
+    removeFromHistory,
+    clearHistory,
+  } = useSearch();
 
   return (
     <Box>
@@ -32,7 +39,7 @@ export function AppShell() {
         />
       </Box>
       <Box css={contentStyles}>
-        <Feed items={items} />
+        <Feed items={items} loading={loading} />
       </Box>
     </Box>
   );

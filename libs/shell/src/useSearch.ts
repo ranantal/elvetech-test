@@ -10,6 +10,7 @@ export interface UseSearchResult {
   items: ItemPosts[];
   initialQuery: string;
   history: string[];
+  loading: boolean;
   search: (query: string) => void;
   removeFromHistory: (query: string) => void;
   clearHistory: () => void;
@@ -18,6 +19,7 @@ export interface UseSearchResult {
 export function useSearch(): UseSearchResult {
   const [items, setItems] = useState<ItemPosts[]>([]);
   const [history, setHistory] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
   const [initialQuery] = useState(
     () => localStorage.getItem(LAST_QUERY_STORAGE_KEY) ?? '',
   );
@@ -31,12 +33,15 @@ export function useSearch(): UseSearchResult {
       localStorage.setItem(LAST_QUERY_STORAGE_KEY, query);
       searchHistory.add(query).then(refreshHistory);
       setItems([]);
+      setLoading(true);
 
-      [query, `${query} graffiti`].forEach((text, slot) => {
+      const requests = [query, `${query} graffiti`].map((text, slot) =>
         searchService.search<PostData>(text).then((posts) => {
           setItems((prev) => mergeSlot(prev, posts, slot as 0 | 1));
-        });
-      });
+        }),
+      );
+
+      Promise.allSettled(requests).then(() => setLoading(false));
     },
     [refreshHistory],
   );
@@ -65,6 +70,7 @@ export function useSearch(): UseSearchResult {
     items,
     initialQuery,
     history,
+    loading,
     search,
     removeFromHistory,
     clearHistory,

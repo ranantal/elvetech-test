@@ -5,6 +5,7 @@ import { Item, type ItemPosts } from '../Item/Item';
 
 export interface FeedProps {
   items: ItemPosts[];
+  loading?: boolean;
 }
 
 const feedStyles = css`
@@ -13,9 +14,14 @@ const feedStyles = css`
   gap: 16px;
 `;
 
-export function Feed({ items }: FeedProps) {
+const LOADING_ITEM: ItemPosts = [undefined, undefined];
+
+export function Feed({ items, loading }: FeedProps) {
+  const showLoadingRow = loading && items.length === 0;
+
   return (
     <Box css={feedStyles}>
+      {showLoadingRow && <Item posts={LOADING_ITEM} />}
       {items.map((posts, index) => (
         <Item key={index} posts={posts} />
       ))}
