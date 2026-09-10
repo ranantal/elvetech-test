@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compileOnSave": false,
+  "files": [],
+  "references": [
+    {
+      "path": "./libs/shell"
+    },
+    {
+      "path": "./apps/web-app"
+    },
+    {
+      "path": "./apps/windows-app"
+    },
+    {
+      "path": "./libs/ui"
+    }
+  ],
+  "compilerOptions": {}
+}

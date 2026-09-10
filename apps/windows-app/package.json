@@ -1,0 +1,78 @@
+{
+  "name": "windows-app",
+  "version": "0.0.1",
+  "description": "Elvetech desktop app for Windows",
+  "author": "Elvetech",
+  "private": true,
+  "main": "dist-electron/main.js",
+  "build": {
+    "appId": "com.elvetech.windows",
+    "productName": "Elvetech",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist-electron/**/*",
+      "dist/renderer/**/*"
+    ],
+    "win": {
+      "target": "nsis"
+    }
+  },
+  "nx": {
+    "targets": {
+      "build-electron": {
+        "executor": "nx:run-commands",
+        "cache": true,
+        "inputs": [
+          "{projectRoot}/electron/**/*",
+          "{projectRoot}/tsconfig.electron.json"
+        ],
+        "outputs": [
+          "{projectRoot}/dist-electron"
+        ],
+        "options": {
+          "cwd": "apps/windows-app",
+          "command": "tsc -p tsconfig.electron.json"
+        }
+      },
+      "build-app": {
+        "executor": "nx:noop",
+        "dependsOn": [
+          "build",
+          "build-electron"
+        ]
+      },
+      "package": {
+        "executor": "nx:run-commands",
+        "dependsOn": [
+          "build-app"
+        ],
+        "options": {
+          "cwd": "apps/windows-app",
+          "command": "nx daemon --stop && electron-builder --win"
+        }
+      },
+      "start": {
+        "executor": "nx:run-commands",
+        "dependsOn": [
+          "build-app"
+        ],
+        "options": {
+          "cwd": "apps/windows-app",
+          "command": "electron ."
+        }
+      },
+      "electron-dev": {
+        "executor": "nx:run-commands",
+        "dependsOn": [
+          "build-electron"
+        ],
+        "options": {
+          "cwd": "{workspaceRoot}",
+          "command": "concurrently -k -n vite,electron -c blue,green \"nx run windows-app:dev\" \"wait-on tcp:4201 && cross-env ELECTRON_RENDERER_URL=http://localhost:4201 electron apps/windows-app/dist-electron/main.js\""
+        }
+      }
+    }
+  }
+}
