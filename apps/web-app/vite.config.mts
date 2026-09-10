@@ -16,6 +16,13 @@ export default defineConfig(() => ({
     fs: {
       allow: [workspaceRoot],
     },
+    proxy: {
+      '/api': {
+        target: 'https://service.test.elvetech.io',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
   },
   preview: {
     port: 4300,
@@ -28,9 +35,10 @@ export default defineConfig(() => ({
     // so edits show up through the normal module graph/HMR.
     alias: {
       '@elvetech/ui': path.resolve(workspaceRoot, 'libs/ui/src/index.ts'),
-      '@elvetech/shell': path.resolve(
+      '@elvetech/shell': path.resolve(workspaceRoot, 'libs/shell/src/index.ts'),
+      '@elvetech/data-access': path.resolve(
         workspaceRoot,
-        'libs/shell/src/index.ts',
+        'libs/data-access/src/index.ts',
       ),
     },
   },

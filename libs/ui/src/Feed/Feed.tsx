@@ -1,11 +1,10 @@
 /** @jsxImportSource @emotion/react */
 import { css } from '@emotion/react';
 import { Box } from '@mui/material';
-import { Item } from '../Item/Item';
-import type { PostData } from '../Post/Post';
+import { Item, type ItemPosts } from '../Item/Item';
 
 export interface FeedProps {
-  items: [PostData, PostData][];
+  items: ItemPosts[];
 }
 
 const feedStyles = css`

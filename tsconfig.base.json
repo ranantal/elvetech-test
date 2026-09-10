@@ -21,7 +21,8 @@
     "types": ["*"],
     "paths": {
       "@elvetech/ui": ["./libs/ui/src/index.ts"],
-      "@elvetech/shell": ["./libs/shell/src/index.ts"]
+      "@elvetech/shell": ["./libs/shell/src/index.ts"],
+      "@elvetech/data-access": ["./libs/data-access/src/index.ts"]
     }
   }
 }

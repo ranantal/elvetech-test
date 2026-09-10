@@ -18,6 +18,13 @@ export default defineConfig(() => ({
     fs: {
       allow: [workspaceRoot],
     },
+    proxy: {
+      '/api': {
+        target: 'https://service.test.elvetech.io',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
   },
   preview: {
     port: 4301,
@@ -33,6 +40,10 @@ export default defineConfig(() => ({
       '@elvetech/shell': path.resolve(
         workspaceRoot,
         'libs/shell/src/index.ts',
+      ),
+      '@elvetech/data-access': path.resolve(
+        workspaceRoot,
+        'libs/data-access/src/index.ts',
       ),
     },
   },
