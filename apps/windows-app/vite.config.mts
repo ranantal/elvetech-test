@@ -7,6 +7,9 @@ const workspaceRoot = path.resolve(import.meta.dirname, '../..');
 export default defineConfig(() => ({
   root: import.meta.dirname,
   cacheDir: '../../node_modules/.vite/apps/windows-app',
+  // .env lives at the workspace root (shared with web-app), not in this
+  // app's own root.
+  envDir: workspaceRoot,
   // Electron serves the renderer via a custom protocol, not an absolute
   // "/" origin, so assets must resolve with relative paths.
   base: './',

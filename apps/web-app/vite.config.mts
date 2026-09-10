@@ -8,6 +8,9 @@ const workspaceRoot = path.resolve(import.meta.dirname, '../..');
 export default defineConfig(() => ({
   root: import.meta.dirname,
   cacheDir: '../../node_modules/.vite/apps/web-app',
+  // .env lives at the workspace root (shared with windows-app), not in this
+  // app's own root.
+  envDir: workspaceRoot,
   server: {
     port: 4200,
     host: 'localhost',
