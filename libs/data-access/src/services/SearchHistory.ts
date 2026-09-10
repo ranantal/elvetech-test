@@ -7,30 +7,32 @@ interface HistoryEntry {
   searchedAt: number;
 }
 
-const store = new IndexedDbStore<HistoryEntry>(
-  'elvetech-search-history',
-  'queries',
-  { keyPath: 'query' },
-);
-
 // Keyed by query text, so re-searching the same string bumps it to the
 // front instead of creating a duplicate entry.
 export class SearchHistory {
+  constructor(
+    private readonly store = new IndexedDbStore<HistoryEntry>(
+      'elvetech-search-history',
+      'queries',
+      { keyPath: 'query' },
+    ),
+  ) {}
+
   async add(query: string): Promise<void> {
     const entry: HistoryEntry = { query, searchedAt: Date.now() };
-    await store.put(entry);
+    await this.store.put(entry);
   }
 
   async remove(query: string): Promise<void> {
-    await store.delete(query);
+    await this.store.delete(query);
   }
 
   async clear(): Promise<void> {
-    await store.clear();
+    await this.store.clear();
   }
 
   async getRecent(limit = RECENT_LIMIT): Promise<string[]> {
-    const entries = await store.getAll();
+    const entries = await this.store.getAll();
 
     return entries
       .sort((a, b) => b.searchedAt - a.searchedAt)
