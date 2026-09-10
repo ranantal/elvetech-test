@@ -1,21 +1,24 @@
-import { useCallback, useState } from 'react';
-import { SearchService } from '@elvetech/data-access';
+import { useCallback, useEffect, useState } from 'react';
+import { CachedSearchService } from '@elvetech/data-access';
 import type { ItemPosts, PostData } from '@elvetech/ui';
 
-const searchService = new SearchService();
+const searchService = new CachedSearchService();
+const LAST_QUERY_STORAGE_KEY = 'elvetech:last-search-query';
 
 export interface UseSearchResult {
   items: ItemPosts[];
+  initialQuery: string;
   search: (query: string) => void;
 }
 
-// Runs the plain query and the `<query> graffiti` query side by side and
-// zips their results index-by-index into item pairs, publishing a slot as
-// soon as its query resolves rather than waiting for both.
 export function useSearch(): UseSearchResult {
   const [items, setItems] = useState<ItemPosts[]>([]);
+  const [initialQuery] = useState(
+    () => localStorage.getItem(LAST_QUERY_STORAGE_KEY) ?? '',
+  );
 
   const search = useCallback((query: string) => {
+    localStorage.setItem(LAST_QUERY_STORAGE_KEY, query);
     setItems([]);
 
     [query, `${query} graffiti`].forEach((text, slot) => {
@@ -25,7 +28,14 @@ export function useSearch(): UseSearchResult {
     });
   }, []);
 
-  return { items, search };
+  // Restore the last search on startup, if there is one.
+  useEffect(() => {
+    if (initialQuery) {
+      search(initialQuery);
+    }
+  }, [initialQuery, search]);
+
+  return { items, initialQuery, search };
 }
 
 function mergeSlot(

@@ -8,8 +8,6 @@ type SearchResponse<T> = {
 };
 
 export class SearchService {
-  // Generic so this lib doesn't need to know about `PostData` (defined in
-  // `ui`) — callers decide what shape the results are.
   async search<T>(query: string): Promise<T[]> {
     const response = await fetch(
       `${API_BASE_URL}/search?q=${encodeURIComponent(query)}`,

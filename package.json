@@ -54,5 +54,7 @@
     "packages/*",
     "apps/*"
   ],
-  "dependencies": {}
+  "dependencies": {
+    "idb": "^8.0.3"
+  }
 }

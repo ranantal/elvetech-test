@@ -3,13 +3,14 @@ import Input from '@mui/material/Input';
 
 export interface SearchBarProps {
   history: string[];
+  initialValue?: string;
   onSearch: (query: string) => void;
   onClearHistory: () => void;
   onRemoveHistoryItem: (item: string) => void;
 }
 
-export function SearchBar({ onSearch }: SearchBarProps) {
-  const [value, setValue] = useState('');
+export function SearchBar({ initialValue = '', onSearch }: SearchBarProps) {
+  const [value, setValue] = useState(initialValue);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     setValue(event.target.value);
