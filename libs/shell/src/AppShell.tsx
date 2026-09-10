@@ -2,6 +2,10 @@
 import { css } from '@emotion/react';
 import { Box } from '@mui/material';
 import { Feed, SearchBar } from '@elvetech/ui';
+import {
+  PlatformServicesProvider,
+  type PlatformServices,
+} from '@elvetech/platform';
 import { useSearch } from './useSearch';
 
 const rootStyles = css`
@@ -24,7 +28,11 @@ const contentStyles = css`
   box-sizing: border-box;
 `;
 
-export function AppShell() {
+export interface AppShellProps {
+  services: PlatformServices;
+}
+
+export function AppShell({ services }: AppShellProps) {
   const {
     items,
     initialQuery,
@@ -36,20 +44,22 @@ export function AppShell() {
   } = useSearch();
 
   return (
-    <Box css={rootStyles}>
-      <Box css={headerStyles}>
-        <SearchBar
-          history={history}
-          initialValue={initialQuery}
-          onSearch={search}
-          onClearHistory={clearHistory}
-          onRemoveHistoryItem={removeFromHistory}
-        />
+    <PlatformServicesProvider services={services}>
+      <Box css={rootStyles}>
+        <Box css={headerStyles}>
+          <SearchBar
+            history={history}
+            initialValue={initialQuery}
+            onSearch={search}
+            onClearHistory={clearHistory}
+            onRemoveHistoryItem={removeFromHistory}
+          />
+        </Box>
+        <Box css={contentStyles}>
+          <Feed items={items} loading={loading} />
+        </Box>
       </Box>
-      <Box css={contentStyles}>
-        <Feed items={items} loading={loading} />
-      </Box>
-    </Box>
+    </PlatformServicesProvider>
   );
 }
 

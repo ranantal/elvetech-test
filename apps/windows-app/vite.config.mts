@@ -45,6 +45,10 @@ export default defineConfig(() => ({
         workspaceRoot,
         'libs/data-access/src/index.ts',
       ),
+      '@elvetech/platform': path.resolve(
+        workspaceRoot,
+        'libs/platform/src/index.ts',
+      ),
     },
   },
   plugins: [react()],

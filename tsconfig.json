@@ -17,6 +17,9 @@
     },
     {
       "path": "./libs/data-access"
+    },
+    {
+      "path": "./libs/platform"
     }
   ],
   "compilerOptions": {}

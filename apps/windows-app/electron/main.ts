@@ -1,9 +1,9 @@
-import { app, BrowserWindow, protocol } from 'electron';
+import { app, BrowserWindow, protocol, ipcMain, dialog } from 'electron';
 import * as path from 'node:path';
 // Deliberately not "node:fs/promises": Electron's asar-aware fs patch
 // intercepts the bare "fs" specifier, and the "node:"-prefixed form can
 // bypass it, breaking reads from inside app.asar in the packaged build.
-import { readFile } from 'fs/promises';
+import { readFile, writeFile } from 'fs/promises';
 
 // Chromium blocks ES module scripts (`<script type="module">`, used by the
 // Vite build) from loading over file://, so the built renderer is served
@@ -55,6 +55,29 @@ function registerAppProtocol(): void {
   });
 }
 
+// The renderer runs with nodeIntegration disabled, so it can't write to
+// disk itself — it asks the main process to do it via this handler, which
+// the preload script exposes as window.electronAPI.downloadFile.
+function registerDownloadHandler(): void {
+  ipcMain.handle(
+    'download-file',
+    async (_event, url: string, filename: string) => {
+      const response = await fetch(url);
+      const buffer = Buffer.from(await response.arrayBuffer());
+
+      const { canceled, filePath } = await dialog.showSaveDialog({
+        defaultPath: filename,
+      });
+
+      if (canceled || !filePath) {
+        return;
+      }
+
+      await writeFile(filePath, buffer);
+    },
+  );
+}
+
 function createWindow(): void {
   const win = new BrowserWindow({
     width: 1280,
@@ -80,6 +103,7 @@ function createWindow(): void {
 
 app.whenReady().then(() => {
   registerAppProtocol();
+  registerDownloadHandler();
   createWindow();
 
   app.on('activate', () => {
