@@ -4,7 +4,7 @@ import {
   type Searcher,
   type SearchHistory,
 } from '@elvetech/data-access';
-import type { ItemPosts, PostData } from '@elvetech/ui';
+import { useNotifyError, type ItemPosts, type PostData } from '@elvetech/ui';
 import { useHistory, defaultSearchHistory } from './useHistory';
 
 const defaultSearchService = new CachedSearchService();
@@ -32,6 +32,7 @@ export function useSearch(
 
   const { history, addToHistory, removeFromHistory, clearHistory } =
     useHistory(searchHistory);
+  const notifyError = useNotifyError();
 
   const search = useCallback(
     (query: string) => {
@@ -40,14 +41,19 @@ export function useSearch(
       setLoading(true);
 
       const requests = [query, `${query} graffiti`].map((text, slot) =>
-        searchService.search<PostData>(text).then((posts) => {
-          setItems((prev) => mergeSlot(prev, posts, slot as 0 | 1));
-        }),
+        searchService
+          .search<PostData>(text)
+          .then((posts) => {
+            setItems((prev) => mergeSlot(prev, posts, slot as 0 | 1));
+          })
+          .catch(() => {
+            notifyError('Search request failed');
+          }),
       );
 
       Promise.allSettled(requests).then(() => setLoading(false));
     },
-    [searchService, addToHistory],
+    [searchService, addToHistory, notifyError],
   );
 
   // Restore the last search on startup, if there is one — the most recent

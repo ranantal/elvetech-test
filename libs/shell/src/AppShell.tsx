@@ -1,11 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import { css } from '@emotion/react';
 import { Box } from '@mui/material';
-import { Feed, NotificationsProvider, SearchBar } from '@elvetech/ui';
-import {
-  PlatformServicesProvider,
-  type PlatformServices,
-} from '@elvetech/platform';
+import { Feed, SearchBar } from '@elvetech/ui';
 import { useSearch } from './useSearch';
 
 const rootStyles = css`
@@ -28,11 +24,7 @@ const contentStyles = css`
   box-sizing: border-box;
 `;
 
-export interface AppShellProps {
-  services: PlatformServices;
-}
-
-export function AppShell({ services }: AppShellProps) {
+export function AppShell() {
   const {
     items,
     initialQuery,
@@ -44,24 +36,20 @@ export function AppShell({ services }: AppShellProps) {
   } = useSearch();
 
   return (
-    <NotificationsProvider>
-      <PlatformServicesProvider services={services}>
-        <Box css={rootStyles}>
-          <Box css={headerStyles}>
-            <SearchBar
-              history={history}
-              initialValue={initialQuery}
-              onSearch={search}
-              onClearHistory={clearHistory}
-              onRemoveHistoryItem={removeFromHistory}
-            />
-          </Box>
-          <Box css={contentStyles}>
-            <Feed items={items} loading={loading} />
-          </Box>
-        </Box>
-      </PlatformServicesProvider>
-    </NotificationsProvider>
+    <Box css={rootStyles}>
+      <Box css={headerStyles}>
+        <SearchBar
+          history={history}
+          initialValue={initialQuery}
+          onSearch={search}
+          onClearHistory={clearHistory}
+          onRemoveHistoryItem={removeFromHistory}
+        />
+      </Box>
+      <Box css={contentStyles}>
+        <Feed items={items} loading={loading} />
+      </Box>
+    </Box>
   );
 }
 
