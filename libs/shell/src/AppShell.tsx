@@ -4,16 +4,24 @@ import { Box } from '@mui/material';
 import { Feed, SearchBar } from '@elvetech/ui';
 import { useSearch } from './useSearch';
 
+const rootStyles = css`
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+`;
+
 const headerStyles = css`
-  position: sticky;
-  top: 0;
+  flex-shrink: 0;
   z-index: 1;
   background-color: #fff;
   padding: 16px;
 `;
 
 const contentStyles = css`
+  flex: 1;
+  min-height: 0;
   padding: 16px;
+  box-sizing: border-box;
 `;
 
 export function AppShell() {
@@ -28,7 +36,7 @@ export function AppShell() {
   } = useSearch();
 
   return (
-    <Box>
+    <Box css={rootStyles}>
       <Box css={headerStyles}>
         <SearchBar
           history={history}
