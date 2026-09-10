@@ -17,17 +17,18 @@ const contentStyles = css`
 `;
 
 export function AppShell() {
-  const { items, initialQuery, search } = useSearch();
+  const { items, initialQuery, history, search, removeFromHistory, clearHistory } =
+    useSearch();
 
   return (
     <Box>
       <Box css={headerStyles}>
         <SearchBar
-          history={[]}
+          history={history}
           initialValue={initialQuery}
           onSearch={search}
-          onClearHistory={() => {}}
-          onRemoveHistoryItem={() => {}}
+          onClearHistory={clearHistory}
+          onRemoveHistoryItem={removeFromHistory}
         />
       </Box>
       <Box css={contentStyles}>

@@ -1,41 +1,74 @@
 import { useCallback, useEffect, useState } from 'react';
-import { CachedSearchService } from '@elvetech/data-access';
+import { CachedSearchService, SearchHistory } from '@elvetech/data-access';
 import type { ItemPosts, PostData } from '@elvetech/ui';
 
 const searchService = new CachedSearchService();
+const searchHistory = new SearchHistory();
 const LAST_QUERY_STORAGE_KEY = 'elvetech:last-search-query';
 
 export interface UseSearchResult {
   items: ItemPosts[];
   initialQuery: string;
+  history: string[];
   search: (query: string) => void;
+  removeFromHistory: (query: string) => void;
+  clearHistory: () => void;
 }
 
 export function useSearch(): UseSearchResult {
   const [items, setItems] = useState<ItemPosts[]>([]);
+  const [history, setHistory] = useState<string[]>([]);
   const [initialQuery] = useState(
     () => localStorage.getItem(LAST_QUERY_STORAGE_KEY) ?? '',
   );
 
-  const search = useCallback((query: string) => {
-    localStorage.setItem(LAST_QUERY_STORAGE_KEY, query);
-    setItems([]);
-
-    [query, `${query} graffiti`].forEach((text, slot) => {
-      searchService.search<PostData>(text).then((posts) => {
-        setItems((prev) => mergeSlot(prev, posts, slot as 0 | 1));
-      });
-    });
+  const refreshHistory = useCallback(() => {
+    searchHistory.getRecent().then(setHistory);
   }, []);
 
-  // Restore the last search on startup, if there is one.
+  const search = useCallback(
+    (query: string) => {
+      localStorage.setItem(LAST_QUERY_STORAGE_KEY, query);
+      searchHistory.add(query).then(refreshHistory);
+      setItems([]);
+
+      [query, `${query} graffiti`].forEach((text, slot) => {
+        searchService.search<PostData>(text).then((posts) => {
+          setItems((prev) => mergeSlot(prev, posts, slot as 0 | 1));
+        });
+      });
+    },
+    [refreshHistory],
+  );
+
+  const removeFromHistory = useCallback(
+    (query: string) => {
+      searchHistory.remove(query).then(refreshHistory);
+    },
+    [refreshHistory],
+  );
+
+  const clearHistory = useCallback(() => {
+    searchHistory.clear().then(refreshHistory);
+  }, [refreshHistory]);
+
+  // Restore the last search and the persisted history on startup.
   useEffect(() => {
+    refreshHistory();
+
     if (initialQuery) {
       search(initialQuery);
     }
-  }, [initialQuery, search]);
+  }, [initialQuery, refreshHistory, search]);
 
-  return { items, initialQuery, search };
+  return {
+    items,
+    initialQuery,
+    history,
+    search,
+    removeFromHistory,
+    clearHistory,
+  };
 }
 
 function mergeSlot(
