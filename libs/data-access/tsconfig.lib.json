@@ -3,7 +3,7 @@
   "compilerOptions": {
     "outDir": "dist",
     "lib": ["dom", "es2022"],
-    "types": ["node", "vite/client"],
+    "types": ["node"],
     "rootDir": "src",
     "module": "esnext",
     "moduleResolution": "bundler",
