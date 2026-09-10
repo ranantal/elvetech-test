@@ -1,5 +1,3 @@
-export const config = { runtime: 'edge' };
-
 const THIRD_PARTY_BASE_URL = 'https://service.test.elvetech.io';
 
 // Mirrors what the Vite dev-server proxy does locally (see
@@ -9,6 +7,8 @@ const THIRD_PARTY_BASE_URL = 'https://service.test.elvetech.io';
 // no client-side changes needed between dev and production.
 export default async function handler(request: Request): Promise<Response> {
   const apiToken = process.env.API_TOKEN;
+
+  console.log('API_TOKEN exists:', Boolean(process.env.API_TOKEN));
 
   if (!apiToken) {
     return new Response(
@@ -24,6 +24,8 @@ export default async function handler(request: Request): Promise<Response> {
     `${THIRD_PARTY_BASE_URL}/search?q=${encodeURIComponent(query)}`,
     { headers: { 'x-api-token': apiToken } },
   );
+
+  console.log('Third-party status:', response.status);
 
   return new Response(response.body, {
     status: response.status,
