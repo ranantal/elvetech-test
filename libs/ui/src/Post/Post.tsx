@@ -4,6 +4,7 @@ import { Box, Card, CardContent, CardMedia, IconButton } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
 import { useDownloadHandler } from '@elvetech/platform';
 import { TagList } from './TagList';
+import { useNotifyError } from '../NotificationsContext';
 
 export interface PostData {
   url: string;
@@ -66,9 +67,14 @@ function getFilename(post: PostData): string {
 
 export function Post({ post }: PostProps) {
   const downloadHandler = useDownloadHandler();
+  const notifyError = useNotifyError();
 
-  const handleDownload = () => {
-    downloadHandler?.download(post.url, getFilename(post));
+  const handleDownload = async () => {
+    try {
+      await downloadHandler?.download(post.url, getFilename(post));
+    } catch {
+      notifyError('Failed to download file');
+    }
   };
 
   return (

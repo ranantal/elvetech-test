@@ -6,3 +6,8 @@ export { Item } from './Item/Item';
 export type { ItemProps, ItemPosts } from './Item/Item';
 export { Feed } from './Feed/Feed';
 export type { FeedProps } from './Feed/Feed';
+export {
+  NotificationsProvider,
+  useNotifyError,
+} from './NotificationsContext';
+export type { NotificationsProviderProps } from './NotificationsContext';
