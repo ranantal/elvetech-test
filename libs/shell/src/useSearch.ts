@@ -1,10 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { SearchHistory } from '@elvetech/data-access';
-import {
-  useNotifyError,
-  type ItemPosts,
-  type PostData,
-} from '@elvetech/ui';
+import { useNotifyError, type ItemPosts, type PostData } from '@elvetech/ui';
 import { useSearcher, type SearchOptions } from '@elvetech/platform';
 import { useHistory, defaultSearchHistory } from './useHistory';
 
@@ -34,25 +30,36 @@ export function useSearch(
     useHistory(searchHistory);
   const notifyError = useNotifyError();
   const searcher = useSearcher();
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const search = useCallback(
     (query: string, options?: SearchOptions) => {
+      abortControllerRef.current?.abort();
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
       addToHistory(query);
       setItems([]);
       setLoading(true);
 
       const requests = [query, `${query} graffiti`].map((text, slot) =>
         searcher
-          .search<PostData>(text, options)
+          .search<PostData>(text, { ...options, signal: controller.signal })
           .then((posts) => {
             setItems((prev) => mergeSlot(prev, posts, slot as 0 | 1));
           })
           .catch(() => {
-            notifyError('Search request failed');
+            if (!controller.signal.aborted) {
+              notifyError('Search request failed');
+            }
           }),
       );
 
-      Promise.allSettled(requests).then(() => setLoading(false));
+      Promise.allSettled(requests).then(() => {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
+      });
     },
     [searcher, addToHistory, notifyError],
   );

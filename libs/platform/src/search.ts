@@ -4,6 +4,9 @@
 // from the app layer.
 export interface SearchOptions {
   cacheOnly?: boolean;
+  // Aborting this signals that a newer search has superseded this one —
+  // implementations should cancel the underlying request where possible.
+  signal?: AbortSignal;
 }
 
 export interface SearchHandler {

@@ -21,7 +21,7 @@ export class CachedSearchService implements Searcher {
       return [];
     }
 
-    const result = await this.service.search<T>(query);
+    const result = await this.service.search<T>(query, options);
     await this.cache.set(query, result);
 
     return result;

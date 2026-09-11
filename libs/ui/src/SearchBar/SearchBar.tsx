@@ -27,6 +27,8 @@ export interface SearchBarProps {
   onRemoveHistoryItem: (item: string) => void;
 }
 
+const DEBOUNCE_MS = 400;
+
 const historyItemStyles = css`
   display: flex;
   align-items: center;
@@ -58,6 +60,9 @@ export function SearchBar({
   const [historyOpen, setHistoryOpen] = useState(false);
   const anchorRef = useRef<HTMLDivElement>(null);
   const hasSeededInitialValue = useRef(false);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
 
   // initialValue can arrive asynchronously (restored from persisted
   // history) after this component has already mounted with an empty seed —
@@ -70,14 +75,30 @@ export function SearchBar({
     setValue(initialValue);
   }, [initialValue]);
 
+  // Don't let a pending debounced search fire after this component's gone.
+  useEffect(() => {
+    return () => clearTimeout(debounceTimerRef.current);
+  }, []);
+
   const runSearch = (query: string) => {
+    clearTimeout(debounceTimerRef.current);
     setValue(query);
     setHistoryOpen(false);
     onSearch(query);
   };
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setValue(event.target.value);
+    const newValue = event.target.value;
+    setValue(newValue);
+    clearTimeout(debounceTimerRef.current);
+
+    if (!newValue.trim()) {
+      return;
+    }
+
+    debounceTimerRef.current = setTimeout(() => {
+      onSearch(newValue);
+    }, DEBOUNCE_MS);
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {

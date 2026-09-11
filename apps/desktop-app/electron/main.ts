@@ -89,30 +89,47 @@ function registerDownloadHandler(): void {
   );
 }
 
+// Keyed by a renderer-generated request id so an aborted search (superseded
+// by a newer one, debounced on the input) can be cancelled: ipcRenderer's
+// invoke/handle pair has no built-in cancellation, so the renderer sends a
+// separate 'cancel-search' message naming the request to abort here.
+const activeSearchRequests = new Map<string, AbortController>();
+
 // Runs entirely in the main process — no CORS to work around (that's a
 // browser/renderer restriction, not one Node's fetch is subject to), and the
 // app doesn't depend on any web deployment's proxy being reachable.
 function registerSearchHandler(): void {
-  ipcMain.handle('search', async (_event, query: string) => {
+  ipcMain.handle('search', async (_event, query: string, requestId: string) => {
     const apiToken = process.env['API_TOKEN'];
 
     if (!apiToken) {
       throw new Error('API_TOKEN is not configured');
     }
 
-    const response = await fetch(
-      `${THIRD_PARTY_BASE_URL}/search?q=${encodeURIComponent(query)}`,
-      { headers: { 'x-api-token': apiToken } },
-    );
+    const controller = new AbortController();
+    activeSearchRequests.set(requestId, controller);
 
-    if (!response.ok) {
-      throw new Error(
-        `Search request failed: ${response.status} ${response.statusText}`,
+    try {
+      const response = await fetch(
+        `${THIRD_PARTY_BASE_URL}/search?q=${encodeURIComponent(query)}`,
+        { headers: { 'x-api-token': apiToken }, signal: controller.signal },
       );
-    }
 
-    const json = (await response.json()) as { items: unknown };
-    return json.items;
+      if (!response.ok) {
+        throw new Error(
+          `Search request failed: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const json = (await response.json()) as { items: unknown };
+      return json.items;
+    } finally {
+      activeSearchRequests.delete(requestId);
+    }
+  });
+
+  ipcMain.on('cancel-search', (_event, requestId: string) => {
+    activeSearchRequests.get(requestId)?.abort();
   });
 }
 

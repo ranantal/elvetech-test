@@ -1,4 +1,4 @@
-import type { Searcher } from '@elvetech/data-access';
+import type { Searcher, SearchOptions } from '@elvetech/data-access';
 
 // Goes through the dev-server proxy (see vite.config.mts) / the Vercel Edge
 // Function (see api/search.ts in production), which forwards to
@@ -11,9 +11,10 @@ type SearchResponse<T> = {
 };
 
 export class SearchService implements Searcher {
-  async search<T>(query: string): Promise<T[]> {
+  async search<T>(query: string, options?: SearchOptions): Promise<T[]> {
     const response = await fetch(
       `${API_BASE_URL}/search?q=${encodeURIComponent(query)}`,
+      { signal: options?.signal },
     );
 
     if (!response.ok) {
