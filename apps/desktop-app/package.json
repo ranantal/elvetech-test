@@ -1,12 +1,12 @@
 {
-  "name": "windows-app",
+  "name": "desktop-app",
   "version": "0.0.1",
-  "description": "Elvetech desktop app for Windows",
+  "description": "Elvetech desktop app",
   "author": "Elvetech",
   "private": true,
   "main": "dist-electron/main.js",
   "build": {
-    "appId": "com.elvetech.windows",
+    "appId": "com.elvetech.desktop",
     "productName": "Elvetech",
     "directories": {
       "output": "release"
@@ -23,6 +23,9 @@
     ],
     "win": {
       "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg"
     }
   },
   "nx": {
@@ -38,7 +41,7 @@
           "{projectRoot}/dist-electron"
         ],
         "options": {
-          "cwd": "apps/windows-app",
+          "cwd": "apps/desktop-app",
           "command": "tsc -p tsconfig.electron.json"
         }
       },
@@ -55,8 +58,8 @@
           "build-app"
         ],
         "options": {
-          "cwd": "apps/windows-app",
-          "command": "nx daemon --stop && electron-builder --win"
+          "cwd": "apps/desktop-app",
+          "command": "nx daemon --stop && electron-builder"
         }
       },
       "start": {
@@ -65,7 +68,7 @@
           "build-app"
         ],
         "options": {
-          "cwd": "apps/windows-app",
+          "cwd": "apps/desktop-app",
           "command": "electron ."
         }
       },
@@ -76,7 +79,7 @@
         ],
         "options": {
           "cwd": "{workspaceRoot}",
-          "command": "concurrently -k -n vite,electron -c blue,green \"nx run windows-app:dev\" \"wait-on tcp:4201 && cross-env ELECTRON_RENDERER_URL=http://localhost:4201 electron apps/windows-app/dist-electron/main.js\""
+          "command": "concurrently -k -n vite,electron -c blue,green \"nx run desktop-app:dev\" \"wait-on tcp:4201 && cross-env ELECTRON_RENDERER_URL=http://localhost:4201 electron apps/desktop-app/dist-electron/main.js\""
         }
       }
     }

@@ -5,8 +5,8 @@
   "scripts": {
     "web:dev": "nx run web-app:dev",
     "web:build": "nx run web-app:build",
-    "windows:dev": "nx run windows-app:electron-dev",
-    "windows:package": "nx run windows-app:package"
+    "desktop:dev": "nx run desktop-app:electron-dev",
+    "desktop:package": "nx run desktop-app:package"
   },
   "private": true,
   "devDependencies": {

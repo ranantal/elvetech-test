@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => {
   return {
     root: import.meta.dirname,
     cacheDir: '../../node_modules/.vite/apps/web-app',
-    // .env lives at the workspace root (shared with windows-app), not in
+    // .env lives at the workspace root (shared with desktop-app), not in
     // this app's own root.
     envDir: workspaceRoot,
     server: {

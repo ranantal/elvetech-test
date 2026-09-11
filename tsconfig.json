@@ -10,7 +10,7 @@
       "path": "./apps/web-app"
     },
     {
-      "path": "./apps/windows-app"
+      "path": "./apps/desktop-app"
     },
     {
       "path": "./libs/ui"

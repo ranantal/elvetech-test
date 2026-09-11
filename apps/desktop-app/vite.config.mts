@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     root: import.meta.dirname,
-    cacheDir: '../../node_modules/.vite/apps/windows-app',
+    cacheDir: '../../node_modules/.vite/apps/desktop-app',
     // .env lives at the workspace root (shared with web-app), not in this
     // app's own root.
     envDir: workspaceRoot,
@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 4201,
       host: 'localhost',
-      // Libs live outside this app's own root (apps/windows-app), so Vite
+      // Libs live outside this app's own root (apps/desktop-app), so Vite
       // must be told it's allowed to serve files from there.
       fs: {
         allow: [workspaceRoot],
