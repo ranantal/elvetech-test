@@ -50,6 +50,7 @@ const downloadButtonStyles = css`
   top: 8px;
   right: 8px;
   background-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 
   &:hover {
     background-color: rgba(255, 255, 255, 0.95);
