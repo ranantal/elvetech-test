@@ -1,13 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { SearchHistory } from '@elvetech/data-access';
 import {
-  CachedSearchService,
-  type Searcher,
-  type SearchHistory,
-} from '@elvetech/data-access';
-import { useNotifyError, type ItemPosts, type PostData } from '@elvetech/ui';
+  useNotifyError,
+  type ItemPosts,
+  type PostData,
+} from '@elvetech/ui';
+import { useSearcher } from '@elvetech/platform';
 import { useHistory, defaultSearchHistory } from './useHistory';
-
-const defaultSearchService = new CachedSearchService();
 
 export interface UseSearchResult {
   items: ItemPosts[];
@@ -19,11 +18,12 @@ export interface UseSearchResult {
   clearHistory: () => void;
 }
 
-// searchService/searchHistory are injectable — mirrors CachedSearchService's
-// own constructor defaults — so this hook can be tested with fakes instead
-// of mocking the module.
+// searchHistory is injectable — mirrors CachedSearchService's own
+// constructor defaults — so this hook can be tested with a fake instead of
+// mocking the module. The searcher itself comes from PlatformServices (same
+// as download) since it differs by platform: fetch on web, the Electron
+// main process on desktop.
 export function useSearch(
-  searchService: Searcher = defaultSearchService,
   searchHistory: SearchHistory = defaultSearchHistory,
 ): UseSearchResult {
   const [items, setItems] = useState<ItemPosts[]>([]);
@@ -33,6 +33,7 @@ export function useSearch(
   const { history, addToHistory, removeFromHistory, clearHistory } =
     useHistory(searchHistory);
   const notifyError = useNotifyError();
+  const searcher = useSearcher();
 
   const search = useCallback(
     (query: string) => {
@@ -41,7 +42,7 @@ export function useSearch(
       setLoading(true);
 
       const requests = [query, `${query} graffiti`].map((text, slot) =>
-        searchService
+        searcher
           .search<PostData>(text)
           .then((posts) => {
             setItems((prev) => mergeSlot(prev, posts, slot as 0 | 1));
@@ -53,7 +54,7 @@ export function useSearch(
 
       Promise.allSettled(requests).then(() => setLoading(false));
     },
-    [searchService, addToHistory, notifyError],
+    [searcher, addToHistory, notifyError],
   );
 
   // Restore the last search on startup, if there is one — the most recent

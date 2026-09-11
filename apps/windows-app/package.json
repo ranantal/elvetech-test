@@ -15,6 +15,12 @@
       "dist-electron/**/*",
       "dist/renderer/**/*"
     ],
+    "extraResources": [
+      {
+        "from": "../../.env",
+        "to": ".env"
+      }
+    ],
     "win": {
       "target": "nsis"
     }

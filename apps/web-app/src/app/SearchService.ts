@@ -1,8 +1,9 @@
-import type { Searcher } from '../interfaces/Searcher';
+import type { Searcher } from '@elvetech/data-access';
 
-// Goes through the dev-server proxy (see apps/*/vite.config.mts), which
-// forwards to https://service.test.elvetech.io and injects the API token
-// server-side — the client never sees it, so it's not in this bundle at all.
+// Goes through the dev-server proxy (see vite.config.mts) / the Vercel Edge
+// Function (see api/search.ts in production), which forwards to
+// https://service.test.elvetech.io and injects the API token server-side —
+// the client never sees it, so it's not in this bundle at all.
 const API_BASE_URL = '/api';
 
 type SearchResponse<T> = {

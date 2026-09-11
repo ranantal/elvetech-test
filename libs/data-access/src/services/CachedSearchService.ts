@@ -1,12 +1,12 @@
 import type { Searcher } from '../interfaces/Searcher';
-import { SearchService } from './SearchService';
 import { SearchCache } from './SearchCache';
 
-// Decorates a Searcher with an IndexedDB-backed cache, keeping the fetch
-// logic in SearchService itself unaware of caching.
+// Decorates a Searcher with an IndexedDB-backed cache. `service` has no
+// default — the concrete transport (fetch on web, IPC to the Electron main
+// process on desktop) is platform-specific and lives in each app, not here.
 export class CachedSearchService implements Searcher {
   constructor(
-    private readonly service: Searcher = new SearchService(),
+    private readonly service: Searcher,
     private readonly cache: SearchCache = new SearchCache(),
   ) {}
 

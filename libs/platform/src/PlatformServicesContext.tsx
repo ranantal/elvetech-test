@@ -1,6 +1,7 @@
 import { createContext, useContext, type ReactNode } from 'react';
 import type { PlatformServices } from './platformServices';
 import type { DownloadHandler } from './download';
+import type { SearchHandler } from './search';
 
 const PlatformServicesContext = createContext<PlatformServices | null>(null);
 
@@ -29,4 +30,17 @@ export function usePlatformServices(): PlatformServices | null {
 
 export function useDownloadHandler(): DownloadHandler | null {
   return usePlatformServices()?.download ?? null;
+}
+
+// Unlike download (an optional capability the UI can gracefully hide),
+// search has no fallback — the app can't function without it, so this fails
+// fast instead of returning null.
+export function useSearcher(): SearchHandler {
+  const services = usePlatformServices();
+
+  if (!services) {
+    throw new Error('useSearcher must be used within a PlatformServicesProvider');
+  }
+
+  return services.search;
 }

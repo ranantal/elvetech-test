@@ -4,6 +4,16 @@ import * as path from 'node:path';
 // intercepts the bare "fs" specifier, and the "node:"-prefixed form can
 // bypass it, breaking reads from inside app.asar in the packaged build.
 import { readFile, writeFile } from 'fs/promises';
+import dotenv from 'dotenv';
+
+// In a packaged build, electron-builder's `extraResources` copies .env next
+// to the app (see package.json's build config) so it's readable at
+// process.resourcesPath; in dev it's the workspace-root .env directly.
+dotenv.config({
+  path: app.isPackaged
+    ? path.join(process.resourcesPath, '.env')
+    : path.join(__dirname, '../../../.env'),
+});
 
 // Chromium blocks ES module scripts (`<script type="module">`, used by the
 // Vite build) from loading over file://, so the built renderer is served
@@ -11,6 +21,7 @@ import { readFile, writeFile } from 'fs/promises';
 // https://www.electronjs.org/docs/latest/api/protocol#protocolregisterschemesasprivilegedcustomschemes
 const APP_SCHEME = 'app';
 const RENDERER_DIR = path.join(__dirname, '../dist/renderer');
+const THIRD_PARTY_BASE_URL = 'https://service.test.elvetech.io';
 
 const MIME_TYPES: Record<string, string> = {
   '.html': 'text/html',
@@ -78,6 +89,33 @@ function registerDownloadHandler(): void {
   );
 }
 
+// Runs entirely in the main process — no CORS to work around (that's a
+// browser/renderer restriction, not one Node's fetch is subject to), and the
+// app doesn't depend on any web deployment's proxy being reachable.
+function registerSearchHandler(): void {
+  ipcMain.handle('search', async (_event, query: string) => {
+    const apiToken = process.env['API_TOKEN'];
+
+    if (!apiToken) {
+      throw new Error('API_TOKEN is not configured');
+    }
+
+    const response = await fetch(
+      `${THIRD_PARTY_BASE_URL}/search?q=${encodeURIComponent(query)}`,
+      { headers: { 'x-api-token': apiToken } },
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Search request failed: ${response.status} ${response.statusText}`,
+      );
+    }
+
+    const json = (await response.json()) as { items: unknown };
+    return json.items;
+  });
+}
+
 function createWindow(): void {
   const win = new BrowserWindow({
     width: 1280,
@@ -104,6 +142,7 @@ function createWindow(): void {
 app.whenReady().then(() => {
   registerAppProtocol();
   registerDownloadHandler();
+  registerSearchHandler();
   createWindow();
 
   app.on('activate', () => {

@@ -1,4 +1,3 @@
-export { SearchService } from './services/SearchService';
 export { SearchCache } from './services/SearchCache';
 export { CachedSearchService } from './services/CachedSearchService';
 export { SearchHistory } from './services/SearchHistory';

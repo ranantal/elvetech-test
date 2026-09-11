@@ -33,6 +33,9 @@
       "path": "../../libs/shell/tsconfig.lib.json"
     },
     {
+      "path": "../../libs/data-access/tsconfig.lib.json"
+    },
+    {
       "path": "../../libs/platform/tsconfig.lib.json"
     }
   ]
