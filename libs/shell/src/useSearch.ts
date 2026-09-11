@@ -5,7 +5,7 @@ import {
   type ItemPosts,
   type PostData,
 } from '@elvetech/ui';
-import { useSearcher } from '@elvetech/platform';
+import { useSearcher, type SearchOptions } from '@elvetech/platform';
 import { useHistory, defaultSearchHistory } from './useHistory';
 
 export interface UseSearchResult {
@@ -36,14 +36,14 @@ export function useSearch(
   const searcher = useSearcher();
 
   const search = useCallback(
-    (query: string) => {
+    (query: string, options?: SearchOptions) => {
       addToHistory(query);
       setItems([]);
       setLoading(true);
 
       const requests = [query, `${query} graffiti`].map((text, slot) =>
         searcher
-          .search<PostData>(text)
+          .search<PostData>(text, options)
           .then((posts) => {
             setItems((prev) => mergeSlot(prev, posts, slot as 0 | 1));
           })
@@ -73,7 +73,7 @@ export function useSearch(
     searchHistory.getRecent(1).then(([lastQuery]) => {
       if (lastQuery) {
         setInitialQuery(lastQuery);
-        search(lastQuery);
+        search(lastQuery, { cacheOnly: true });
       }
     });
   }, [search, searchHistory]);

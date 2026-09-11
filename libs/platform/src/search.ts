@@ -2,6 +2,10 @@
 // doesn't depend on data-access, same reasoning as DownloadHandler. Any
 // implementation that satisfies this shape structurally can be passed in
 // from the app layer.
+export interface SearchOptions {
+  cacheOnly?: boolean;
+}
+
 export interface SearchHandler {
-  search<T>(query: string): Promise<T[]>;
+  search<T>(query: string, options?: SearchOptions): Promise<T[]>;
 }

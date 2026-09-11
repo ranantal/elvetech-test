@@ -1,5 +1,5 @@
 export type { DownloadHandler } from './download';
-export type { SearchHandler } from './search';
+export type { SearchHandler, SearchOptions } from './search';
 export type { PlatformServices } from './platformServices';
 export {
   PlatformServicesProvider,

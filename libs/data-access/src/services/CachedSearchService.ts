@@ -1,4 +1,4 @@
-import type { Searcher } from '../interfaces/Searcher';
+import type { Searcher, SearchOptions } from '../interfaces/Searcher';
 import { SearchCache } from './SearchCache';
 
 // Decorates a Searcher with an IndexedDB-backed cache. `service` has no
@@ -10,11 +10,15 @@ export class CachedSearchService implements Searcher {
     private readonly cache: SearchCache = new SearchCache(),
   ) {}
 
-  async search<T>(query: string): Promise<T[]> {
+  async search<T>(query: string, options?: SearchOptions): Promise<T[]> {
     const cached = await this.cache.get<T>(query);
 
     if (cached) {
       return cached;
+    }
+
+    if (options?.cacheOnly) {
+      return [];
     }
 
     const result = await this.service.search<T>(query);
